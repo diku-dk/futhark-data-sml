@@ -12,6 +12,13 @@ jobs:
           echo "OS=$(uname -s | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
           echo "RUNHOME=$(echo $HOME)" >> $GITHUB_ENV
 
+      - name: Install Futhark
+        run: |
+          wget http://futhark-lang.org/releases/futhark-nightly-linux-x86_64.tar.xz
+          tar xf futhark-nightly-linux-x86_64.tar.xz
+          (cd futhark-nightly-linux-x86_64/ && PREFIX=$HOME/.local make install)
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Install MLKit and smlpkg
         working-directory: ${{ env.RUNHOME }}
         run: |
