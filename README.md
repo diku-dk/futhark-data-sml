@@ -42,3 +42,5 @@ Notice that you can choose either to treat the downloaded package as
 part of your own project sources (vendoring) or you can add the
 `sml.pkg` file to your project sources and make the `smlpkg sync`
 command part of your build process.
+
+[See also this very simple example program.](test/test.sml)
