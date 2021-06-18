@@ -9,7 +9,7 @@ protocol](https://futhark.readthedocs.io/en/latest/server-protocol.html).
 
 ## Overview of MLB files
 
-* lib/github.com/diku-dk/futhark-data-sml/futhark-data.mlb:
+* [lib/github.com/diku-dk/futhark-data-sml/futhark-data.mlb](lib/github.com/diku-dk/futhark-data-sml/futhark-data.mlb):
 
   * **signature [DATA](lib/github.com/diku-dk/futhark-data-sml/DATA.sig)** (also the documentation)
   * **structure Data**
