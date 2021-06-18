@@ -92,7 +92,7 @@ fun typeToStr bool = "bool"
   | typeToStr f32 = " f32"
   | typeToStr f64 = " f64"
 
-val shapeElems = foldl op+ 0
+val shapeElems = foldl op* 1
 
 fun readValue s =
     let val b = readByte s
