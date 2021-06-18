@@ -2,86 +2,97 @@ structure Data : DATA = struct
 
 type shape = int list
 
-datatype value
-  = u8Value of shape * Word8Array.array
-  | u16Value of shape * Word16Array.array
-  | u32Value of shape * Word32Array.array
-  | u64Value of shape * Word64Array.array
-  | i8Value of shape * Int8Array.array
-  | i16Value of shape * Int16Array.array
-  | i32Value of shape * Int32Array.array
-  | i64Value of shape * Int64Array.array
-  | boolValue of shape * BoolArray.array
-  | f32Value of shape * Real32Array.array
-  | f64Value of shape * Real64Array.array
+datatype elem_type
+  = i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | bool | f32 | f64
 
-fun readByte s =
-    case BinIO.input1 s of
-        NONE => raise Fail "Unexpected EOF"
-      | SOME b => b
+datatype value_type = value_type of shape * elem_type
 
-fun readBools n s =
-    let val vec = BinIO.inputN (s,n*1)
-    in BoolArray.tabulate(n, fn i => (Word8Vector.sub(vec,i)) <> 0w0) end
+datatype value = value of value_type * Word8Vector.vector
 
-fun readI8s n s =
-    let val vec = BinIO.inputN (s,n*1)
-    in Int8Array.tabulate(n, fn i => Int8.fromLarge (Word8.toLargeInt (Word8Vector.sub(vec,i)))) end
+fun valueBytes (value (_, bs)) = bs
 
-fun readI16s n s =
-    let val vec = BinIO.inputN (s,n*2)
-    in Int16Array.tabulate(n, fn i => Int16.fromLarge (LargeWord.toLargeInt (PackWord16Little.subVec(vec,i)))) end
+fun valueShape (value (value_type (shape, _), _)) = shape
 
-fun readI32s n s =
-    let val vec = BinIO.inputN (s,n*4)
-    in Int32Array.tabulate(n, fn i => Int32.fromLarge (LargeWord.toLargeInt (PackWord32Little.subVec(vec,i)))) end
+fun valueElemType (value (value_type (_, t), _)) = t
 
-fun readI64s n s =
-    let val vec = BinIO.inputN (s,n*8)
-    in Int64Array.tabulate(n, fn i => Int64.fromLarge (LargeWord.toLargeInt (PackWord64Little.subVec(vec,i)))) end
+(* In bytes. *)
+fun elemTypeSize i8 = 1
+  | elemTypeSize i16 = 2
+  | elemTypeSize i32 = 4
+  | elemTypeSize i64 = 8
+  | elemTypeSize u8 = 1
+  | elemTypeSize u16 = 2
+  | elemTypeSize u32 = 4
+  | elemTypeSize u64 = 8
+  | elemTypeSize f32 = 4
+  | elemTypeSize f64 = 8
+  | elemTypeSize bool = 1
 
-fun readU8s n s =
-    let val vec = BinIO.inputN (s,n*1)
-    in Word8Array.tabulate(n, fn i => Word8Vector.sub(vec,i)) end
 
-fun readU16s n s =
-    let val vec = BinIO.inputN (s,n*2)
-    in Word16Array.tabulate(n, fn i => Word16.fromLargeWord (PackWord16Little.subVec(vec,i))) end
-
-fun readU32s n s =
-    let val vec = BinIO.inputN (s,n*4)
-    in Word32Array.tabulate(n, fn i => Word32.fromLargeWord (PackWord32Little.subVec(vec,i))) end
-
-fun readU64s n s =
-    let val vec = BinIO.inputN (s,n*4)
-    in Word64Array.tabulate(n, fn i => Word64.fromLargeWord (PackWord64Little.subVec(vec,i))) end
-
-fun readF32s n s =
-    let val vec = BinIO.inputN (s,n*4)
-    in Real32Array.tabulate(n, fn i => PackReal32Little.subVec(vec,i)) end
-
-fun readF64s n s =
-    let val vec = BinIO.inputN (s,n*8)
-    in Real64Array.tabulate(n, fn i => PackReal64Little.subVec(vec,i)) end
-
-fun readShape r s =
-    let val arr = readI64s r s
-    in List.tabulate (r, fn i => Int64.toInt(Int64Array.sub(arr,i))) end
-
-val shapeElems = foldl op+ 0
+val binaryFormatMagic = Word8.fromInt (ord #"b")
+val binaryFormatVersion = 2
 
 val vecstr = Word8Vector.fromList o map (Word8.fromInt o ord)
 fun strvec v =
     implode (List.tabulate (Word8Vector.length v,
                             fn i => chr (Word8.toInt (Word8Vector.sub(v,i)))))
 
-fun readValueHelper elem_reader constructor r s =
-    let val shape = readShape r s
-        val vs = elem_reader (shapeElems shape) s
-    in constructor (shape, vs) end
+fun readByte s =
+    case BinIO.input1 s of
+        NONE => raise Fail "Unexpected EOF"
+      | SOME b => b
 
-val binaryFormatMagic = Word8.fromInt (ord #"b")
-val binaryFormatVersion = 2
+fun readI64 s =
+    let val vec = BinIO.inputN (s,8)
+        fun byte i = Int64.fromLarge (LargeWord.toLargeInt (LargeWord.<< (Word8.toLarge (Word8Vector.sub(vec,i)), Word.fromInt i*0w8)))
+    in byte 0 end
+
+fun readShape 0 s = []
+  | readShape i s = Int64.toInt (readI64 s) :: readShape (i-1) s
+
+fun writeI64 s x =
+    let val x = Word64.fromInt x
+        fun byte i =
+            Word8.fromLarge (Word64.toLarge (Word64.andb(Word64.>>(x,Word.fromInt(8*i)), 0w255)))
+    in BinIO.output1(s,byte 0);
+       BinIO.output1(s,byte 1);
+       BinIO.output1(s,byte 2);
+       BinIO.output1(s,byte 3);
+       BinIO.output1(s,byte 4);
+       BinIO.output1(s,byte 5);
+       BinIO.output1(s,byte 6);
+       BinIO.output1(s,byte 7)
+    end
+
+fun writeShape [] _ = ()
+  | writeShape (d::ds) s = writeI64 s d before writeShape ds s
+
+fun strToType "bool" = bool
+  | strToType "  u8" = u8
+  | strToType " u16" = u16
+  | strToType " u32" = u32
+  | strToType " u64" = u64
+  | strToType "  i8" = i8
+  | strToType " i16" = i16
+  | strToType " i32" = i32
+  | strToType " i64" = i64
+  | strToType " f32" = f32
+  | strToType " f64" = f64
+  | strToType s = raise Fail ("Unknown element type: " ^ s)
+
+fun typeToStr bool = "bool"
+  | typeToStr u8 = "  u8"
+  | typeToStr u16 = " u16"
+  | typeToStr u32 = " u32"
+  | typeToStr u64 = " u64"
+  | typeToStr i8 = "  i8"
+  | typeToStr i16 = " i16"
+  | typeToStr i32 = " i32"
+  | typeToStr i64 = " i64"
+  | typeToStr f32 = " f32"
+  | typeToStr f64 = " f64"
+
+val shapeElems = foldl op+ 0
 
 fun readValue s =
     let val b = readByte s
@@ -90,18 +101,17 @@ fun readValue s =
         val t = BinIO.inputN (s,4)
     in if (b,v) <> (binaryFormatMagic, Word8.fromInt binaryFormatVersion)
        then raise Fail "Invalid header"
-       else case strvec t of
-                " f32" => readValueHelper readF32s  f32Value  r s
-              | " f64" => readValueHelper readF64s  f64Value  r s
-              | "  u8" => readValueHelper readU8s   u8Value   r s
-              | " u16" => readValueHelper readU16s  u16Value  r s
-              | " u32" => readValueHelper readU32s  u32Value  r s
-              | " u64" => readValueHelper readU64s  u64Value  r s
-              | "  i8" => readValueHelper readI8s   i8Value   r s
-              | " i16" => readValueHelper readI16s  i16Value  r s
-              | " i32" => readValueHelper readI32s  i32Value  r s
-              | " i64" => readValueHelper readI64s  i64Value  r s
-              | "bool" => readValueHelper readBools boolValue r s
-              | t' => raise Fail ("Unknown element type: \"" ^ t' ^ "\"")
+       else let val t' = strToType(strvec t)
+                val shape = readShape r s
+                val bytes = BinIO.inputN(s,shapeElems shape * elemTypeSize t')
+            in value (value_type (shape, t'), bytes) end
     end
+
+fun writeValue v s =
+    (BinIO.output1(s, binaryFormatMagic);
+     BinIO.output1(s, Word8.fromInt binaryFormatVersion);
+     BinIO.output1(s, Word8.fromInt (length (valueShape v)));
+     BinIO.output(s, strvec (typeToStr (valueElemType v)));
+     writeShape (valueShape v) s;
+     BinIO.output(s,valueBytes v))
 end
