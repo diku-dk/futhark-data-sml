@@ -30,6 +30,6 @@ jobs:
           mlkit --version
           smlpkg --version
 
-      - run:
+      - run: |
           smlpkg sync
           (cd test && sh test.sh)
