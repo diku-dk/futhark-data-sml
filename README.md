@@ -11,8 +11,8 @@ protocol](https://futhark.readthedocs.io/en/latest/server-protocol.html).
 
 * lib/github.com/diku-dk/futhark-data-sml/futhark-data.mlb:
 
-  * **signature [DATA](lib/github.com/diku-dk/futhark-data-sml/RANDOM.sig)** (also the documentation)
-  * **structure DATA**
+  * **signature [DATA](lib/github.com/diku-dk/futhark-data-sml/DATA.sig)** (also the documentation)
+  * **structure Data**
 
 ## Use of the package
 
