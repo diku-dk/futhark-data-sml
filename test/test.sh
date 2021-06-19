@@ -26,3 +26,6 @@ dotest "[1][2][3]f32"
 dotest "[1][2][3]f64"
 dotest "[1][2][3]bool"
 dotest "bool"
+
+mlkit test_convert.mlb
+./run
