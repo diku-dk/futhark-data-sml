@@ -114,4 +114,10 @@ fun writeValue v s =
      BinIO.output(s, vecstr (explode (typeToStr (valueElemType v))));
      writeShape (valueShape v) s;
      BinIO.output(s,valueBytes v))
+
+fun mkValue shape t bytes =
+    if Word8Vector.length bytes <> shapeElems shape * elemTypeSize t
+    then raise Size
+    else value (value_type (shape, t), bytes)
+
 end

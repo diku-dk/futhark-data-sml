@@ -26,4 +26,8 @@ val readValue : BinIO.instream -> value
 (* Write a Futhark value in the binary data format to an open file. *)
 val writeValue : value -> BinIO.outstream -> unit
 
+(* Construct a value from its constituent parts.  Raises Size if the
+vector does not have the right number of elements. *)
+val mkValue : shape -> elem_type -> Word8Vector.vector -> value
+
 end
