@@ -45,7 +45,7 @@ fun readByte s =
 fun readI64 s =
     let val vec = BinIO.inputN (s,8)
         fun byte i = Int64.fromLarge (LargeWord.toLargeInt (LargeWord.<< (Word8.toLarge (Word8Vector.sub(vec,i)), Word.fromInt i*0w8)))
-    in byte 0 end
+    in byte 0 + byte 1 + byte 2 + byte 3 + byte 4 + byte 5 + byte 6 + byte 7 end
 
 fun readShape 0 s = []
   | readShape i s = Int64.toInt (readI64 s) :: readShape (i-1) s
@@ -111,7 +111,7 @@ fun writeValue v s =
     (BinIO.output1(s, binaryFormatMagic);
      BinIO.output1(s, Word8.fromInt binaryFormatVersion);
      BinIO.output1(s, Word8.fromInt (length (valueShape v)));
-     BinIO.output(s, strvec (typeToStr (valueElemType v)));
+     BinIO.output(s, vecstr (explode (typeToStr (valueElemType v))));
      writeShape (valueShape v) s;
      BinIO.output(s,valueBytes v))
 end
