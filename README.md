@@ -44,3 +44,10 @@ part of your own project sources (vendoring) or you can add the
 command part of your build process.
 
 [See also this very simple example program.](test/test.sml)
+
+## Compatibility
+
+Tested with MLton and MLKit.  Should in principle work with any SML
+implementation that supports a reasonable subset of the Basis library
+(e.g. SML/NJ), but you may need to manually load the files if they
+don't support MLB.
