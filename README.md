@@ -1,4 +1,4 @@
-# futhark-data-sml [![CI](https://github.com/diku-dk/futhark-data-sml/workflows/build/badge.svg)](https://github.com/diku-dk/futhark-data-sml/actions)
+# futhark-data-sml [![CI](https://github.com/diku-dk/futhark-data-sml/workflows/CI/badge.svg)](https://github.com/diku-dk/futhark-data-sml/actions)
 
 A Standard ML implementation of the
 [Futhark](https://futhark-lang.org) [binary data
