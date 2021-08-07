@@ -4,7 +4,7 @@ signature DATA = sig
 type shape = int list
 
 (* The element type of a Futhark value. *)
-datatype elem_type = i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | bool | f32 | f64
+datatype elem_type = i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | bool | f16 | f32 | f64
 
 (* The size in bytes of a single element of this type. *)
 val elemTypeSize : elem_type -> int

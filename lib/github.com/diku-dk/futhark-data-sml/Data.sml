@@ -3,7 +3,7 @@ structure Data : DATA = struct
 type shape = int list
 
 datatype elem_type
-  = i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | bool | f32 | f64
+  = i8 | i16 | i32 | i64 | u8 | u16 | u32 | u64 | bool | f16 | f32 | f64
 
 datatype value_type = value_type of shape * elem_type
 
@@ -24,6 +24,7 @@ fun elemTypeSize i8 = 1
   | elemTypeSize u16 = 2
   | elemTypeSize u32 = 4
   | elemTypeSize u64 = 8
+  | elemTypeSize f16 = 2
   | elemTypeSize f32 = 4
   | elemTypeSize f64 = 8
   | elemTypeSize bool = 1
@@ -76,6 +77,7 @@ fun strToType "bool" = bool
   | strToType " i16" = i16
   | strToType " i32" = i32
   | strToType " i64" = i64
+  | strToType " f16" = f16
   | strToType " f32" = f32
   | strToType " f64" = f64
   | strToType s = raise Fail ("Unknown element type: " ^ s)
@@ -89,6 +91,7 @@ fun typeToStr bool = "bool"
   | typeToStr i16 = " i16"
   | typeToStr i32 = " i32"
   | typeToStr i64 = " i64"
+  | typeToStr f16 = " f16"
   | typeToStr f32 = " f32"
   | typeToStr f64 = " f64"
 
